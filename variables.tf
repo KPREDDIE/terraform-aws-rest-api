@@ -26,5 +26,6 @@ variable "stage_name" {
 
 variable "use_waf" {
   type        = bool
+  default     = true
   description = "Whether to use a Web Application Firewall in front of the API."
 }

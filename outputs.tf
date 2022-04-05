@@ -34,6 +34,11 @@ output "api_url" {
   description = "API URL not including endpoint pathparts."
 }
 
+output "api_key" {
+  value       = aws_api_gateway_api_key.value
+  description = "API key."
+}
+
 output "api_deploy_cli" {
   value       = "aws apigateway create-deployment --rest-api-id ${aws_api_gateway_rest_api.api.id} --stage-name ${var.stage_name} --description 'Redeploying stage for Terraform changes.'"
   description = "AWSCLI command to redeploy the API and activate changes."
