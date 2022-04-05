@@ -30,6 +30,9 @@ resource "aws_api_gateway_request_validator" "validator" {
   rest_api_id                 = aws_api_gateway_rest_api.api.id
   validate_request_body       = true
   validate_request_parameters = true
+  depends_on = [
+    aws_api_gateway_rest_api.api
+  ]
 }
 
 # Root CORS.
@@ -39,12 +42,18 @@ resource "aws_api_gateway_method" "options" {
   http_method      = "OPTIONS"
   authorization    = "NONE"
   api_key_required = false
+  depends_on = [
+    aws_api_gateway_rest_api.api
+  ]
 }
 resource "aws_api_gateway_method_response" "options" {
   rest_api_id = aws_api_gateway_rest_api.api.id
   resource_id = aws_api_gateway_rest_api.api.root_resource_id
   http_method = aws_api_gateway_method.options.http_method
   status_code = "200"
+  depends_on = [
+    aws_api_gateway_method.options
+  ]
   response_models = {
     "application/json" = "Empty"
   }
@@ -60,6 +69,9 @@ resource "aws_api_gateway_integration" "options" {
   http_method          = "OPTIONS"
   type                 = "MOCK"
   passthrough_behavior = "WHEN_NO_MATCH"
+  depends_on = [
+    aws_api_gateway_rest_api.api
+  ]
   #   # Transforms the incoming XML request to JSON
   #   request_templates = {
   #     "application/xml" = <<EOF
@@ -77,6 +89,9 @@ resource "aws_api_gateway_integration_response" "options" {
   resource_id = aws_api_gateway_rest_api.api.root_resource_id
   http_method = aws_api_gateway_integration.options.http_method
   status_code = "200"
+  depends_on = [
+    aws_api_gateway_integration.options
+  ]
   response_parameters = {
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
     "method.response.header.Access-Control-Allow-Methods" = "'POST,OPTIONS'"
@@ -97,6 +112,9 @@ resource "aws_api_gateway_integration_response" "options" {
 resource "aws_api_gateway_deployment" "deployment" {
   rest_api_id = aws_api_gateway_rest_api.api.id
   stage_name  = var.stage_name
+  depends_on = [
+    aws_api_gateway_rest_api.api
+  ]
 
   /* triggers = {
     # NOTE: The configuration below will satisfy ordering considerations,
@@ -131,6 +149,9 @@ resource "aws_api_gateway_method_settings" "all" {
   rest_api_id = aws_api_gateway_rest_api.api.id
   stage_name  = aws_api_gateway_deployment.deployment.stage_name
   method_path = "*/*"
+  depends_on = [
+    aws_api_gateway_deployment.deployment
+  ]
 
   settings {
     metrics_enabled        = false
@@ -147,6 +168,9 @@ resource "aws_api_gateway_api_key" "api_key" {
 resource "aws_api_gateway_usage_plan" "usage_plan" {
   name        = "my_usage_plan"
   description = "API usage plan."
+  depends_on = [
+    aws_api_gateway_deployment.deployment
+  ]
 
   api_stages {
     api_id = aws_api_gateway_rest_api.api.id
@@ -170,10 +194,16 @@ resource "aws_api_gateway_usage_plan_key" "plan_key" {
   key_id        = aws_api_gateway_api_key.api_key.id
   key_type      = "API_KEY"
   usage_plan_id = aws_api_gateway_usage_plan.usage_plan.id
+  depends_on = [
+    aws_api_gateway_usage_plan.usage_plan
+  ]
 }
 
 resource "aws_wafv2_web_acl_association" "waf_association" {
   count        = var.use_waf ? 1 : 0
   resource_arn = "arn:aws:apigateway:${local.region}::/restapis/${aws_api_gateway_rest_api.api.id}/stages/${aws_api_gateway_deployment.deployment.stage_name}"
   web_acl_arn  = aws_wafv2_web_acl.waf_regional[0].arn
+  depends_on = [
+    aws_wafv2_web_acl.waf_regional[0]
+  ]
 }
