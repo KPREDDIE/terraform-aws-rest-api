@@ -39,7 +39,7 @@ output "api_key" {
   description = "API key."
 }
 
-output "api_deploy_cli" {
-  value       = "aws apigateway create-deployment --rest-api-id ${aws_api_gateway_rest_api.api.id} --stage-name ${var.stage_name} --description 'Redeploying stage for Terraform changes.'"
-  description = "AWSCLI command to redeploy the API and activate changes."
+output "stage_name" {
+  value       = aws_api_gateway_deployment.deployment.stage_name
+  description = "API Stage name."
 }
