@@ -43,3 +43,8 @@ output "stage_name" {
   value       = aws_api_gateway_deployment.deployment.stage_name
   description = "API Stage name."
 }
+
+output "cors" {
+  value       = var.cors
+  description = "API CORS configuration."
+}

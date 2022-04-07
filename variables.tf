@@ -29,3 +29,9 @@ variable "use_waf" {
   default     = true
   description = "Whether to use a Web Application Firewall in front of the API."
 }
+
+variable "cors" {
+  type        = string
+  default     = "*"
+  description = "API CORS configuration."
+}
